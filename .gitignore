@@ -1,0 +1,24 @@
+# Generated build products
+code/build/
+build/
+
+# Temporary files
+tmp/
+
+# Provided assignment handout (not part of the implementation)
+16782_HW3_fall26.pdf
+
+# Editor and operating-system metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# LaTeX generated files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc

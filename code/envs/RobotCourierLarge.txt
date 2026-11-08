@@ -1,0 +1,16 @@
+Symbols: R,P1,P2,P3,P4,A,B,C,D,E,F,G,H
+Initial conditions: Robot(R), Package(P1), Package(P2), Package(P3), Package(P4), Loc(A), Loc(B), Loc(C), Loc(D), Loc(E), Loc(F), Loc(G), Loc(H), Connected(A,B), Connected(B,A), Connected(B,C), Connected(C,B), Connected(C,D), Connected(D,C), Connected(D,E), Connected(E,D), Connected(E,F), Connected(F,E), Connected(F,G), Connected(G,F), Connected(G,H), Connected(H,G), Destination(P1,H), Destination(P2,A), Destination(P3,F), Destination(P4,B), At(R,A), At(P1,B), At(P2,G), At(P3,C), At(P4,E), HandEmpty(R), Undelivered(P1), Undelivered(P2), Undelivered(P3), Undelivered(P4)
+Goal conditions: Delivered(P1), Delivered(P2), Delivered(P3), Delivered(P4)
+
+Actions:
+        Move(r,from,to)
+        Preconditions: Robot(r), Loc(from), Loc(to), At(r,from), Connected(from,to)
+        Effects: At(r,to), !At(r,from)
+
+        Pick(r,p,l)
+        Preconditions: Robot(r), Package(p), Loc(l), At(r,l), At(p,l), HandEmpty(r), Undelivered(p)
+        Effects: Carrying(r,p), !At(p,l), !HandEmpty(r)
+
+        Deliver(r,p,l)
+        Preconditions: Robot(r), Package(p), Loc(l), At(r,l), Carrying(r,p), Destination(p,l), Undelivered(p)
+        Effects: Delivered(p), At(p,l), HandEmpty(r), !Carrying(r,p), !Undelivered(p)

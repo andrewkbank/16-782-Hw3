@@ -1,0 +1,8 @@
+Symbols: D1,D2,D3,D4,P1,P2,P3
+Initial conditions: Disk(D1), Disk(D2), Disk(D3), Disk(D4), Peg(P1), Peg(P2), Peg(P3), Support(D1), Support(D2), Support(D3), Support(D4), Support(P1), Support(P2), Support(P3), CanPlace(D1,D2), CanPlace(D1,D3), CanPlace(D1,D4), CanPlace(D1,P1), CanPlace(D1,P2), CanPlace(D1,P3), CanPlace(D2,D3), CanPlace(D2,D4), CanPlace(D2,P1), CanPlace(D2,P2), CanPlace(D2,P3), CanPlace(D3,D4), CanPlace(D3,P1), CanPlace(D3,P2), CanPlace(D3,P3), CanPlace(D4,P1), CanPlace(D4,P2), CanPlace(D4,P3), On(D1,D2), On(D2,D3), On(D3,D4), On(D4,P1), Clear(D1), Clear(P2), Clear(P3)
+Goal conditions: On(D1,D2), On(D2,D3), On(D3,D4), On(D4,P3)
+
+Actions:
+        Move(d,from,to)
+        Preconditions: Disk(d), Support(from), Support(to), On(d,from), Clear(d), Clear(to), CanPlace(d,to)
+        Effects: On(d,to), Clear(from), !On(d,from), !Clear(to)

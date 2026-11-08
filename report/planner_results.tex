@@ -1,0 +1,215 @@
+% Required packages in the document preamble:
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\section{Search Algorithms and Experimental Evaluation}
+\label{sec:planner-evaluation}
+
+\subsection{Planner Implementations}
+
+We implemented three forward state-space graph-search planners over the supplied
+STRIPS representation.  All actions have unit cost, so plan quality is measured
+by the number of actions in the returned plan.
+
+\paragraph{Breadth-first search (BFS).}
+BFS serves as the uninformed baseline.  States are marked visited when they are
+inserted into the frontier, preventing repeated expansion of the same symbolic
+state.  Since every action has unit cost, BFS is complete on the finite state
+spaces considered here and returns a minimum-length plan.
+
+\paragraph{A$^\ast$ with goal-count heuristic.}
+The first informed planner uses
+\begin{equation}
+    h_{\mathrm{goal}}(s)
+    = \left|\left\{g \in G \mid g \notin s\right\}\right|,
+\end{equation}
+the number of goal literals that are not satisfied in state $s$.  This heuristic
+is inexpensive and domain independent.  It is not admissible in general because
+a single action may achieve multiple goal literals.  Consequently, this planner
+does not have a general optimality guarantee, although it returned the same plan
+length as BFS in every experiment.
+
+\paragraph{A$^\ast$ with empty-delete-list heuristic.}
+The second informed planner uses the exact empty-delete-list heuristic $h^+$.
+For each state evaluated by the outer A$^\ast$ search, a relaxed planning problem
+is constructed by removing every negative action effect while retaining action
+preconditions.  The heuristic value is the length of the shortest plan in this
+relaxed problem.  We solve the relaxed problem with an inner A$^\ast$ search.  An
+event-driven $h_{\max}$ propagation supplies an admissible lower bound to the
+inner search, but the value returned to the outer search is the exact relaxed
+plan length rather than the $h_{\max}$ approximation.  For the positive-
+precondition STRIPS domains used in this assignment, $h^+$ is admissible because
+removing delete effects cannot make the relaxed problem harder than the original
+problem.
+
+\paragraph{Domain-independent preprocessing.}
+Before search, action schemas are grounded using the symbols in the environment.
+Predicates that never appear in any action effect are identified as static.  A
+grounded action is discarded if one of its static preconditions is false in the
+initial state, and satisfied static preconditions are removed from its runtime
+applicability test.  This pruning is semantics preserving because a static fact
+cannot change during planning.  For example, it reduces the large Robot Courier
+instance from 6,591 unfiltered symbol assignments to 50 potentially applicable
+grounded actions.
+
+\subsection{Experimental Methodology}
+
+The planner was compiled as C++14 with optimization level \texttt{-O2}.  Each
+planner/environment combination was executed three times, and the tables report
+the median total wall-clock planning time.  Total time includes action grounding,
+heuristic initialization, and graph search, but excludes environment-file parsing
+and console output.  We additionally recorded the number of expanded states,
+generated successors, and maximum frontier size.  Timing measurements were made
+under WSL on the same computer for every configuration.  Because sub-millisecond
+measurements are sensitive to system noise, expansion counts are the more stable
+comparison for the smallest instances.
+
+\subsection{Required Environments}
+
+Table~\ref{tab:required-results} gives results for the supplied environments.
+The trivial BlocksEasy instance is included as a correctness check even though
+it is not required in the final comparison.  All three planners returned plans
+of identical length on every problem.
+
+\begin{table}[t]
+    \centering
+    \caption{Results on supplied environments. Time is the median of three runs
+    and includes both grounding and search.}
+    \label{tab:required-results}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{llrrrrrr}
+        \toprule
+        Environment & Planner & Grounded & Plan & Expanded & Generated & Max frontier & Time (ms) \\
+        \midrule
+        BlocksEasy & BFS & 45 & 1 & 5 & 18 & 9 & 0.544 \\
+        BlocksEasy & A$^\ast$ goal count & 45 & 1 & 1 & 5 & 5 & 0.406 \\
+        BlocksEasy & A$^\ast$ EDL & 45 & 1 & 1 & 5 & 5 & 0.958 \\
+        \midrule
+        Blocks & BFS & 45 & 3 & 28 & 97 & 15 & 1.152 \\
+        Blocks & A$^\ast$ goal count & 45 & 3 & 5 & 26 & 15 & 0.737 \\
+        Blocks & A$^\ast$ EDL & 45 & 3 & 3 & 19 & 15 & 8.709 \\
+        \midrule
+        Blocks and Triangles & BFS & 315 & 6 & 1564 & 15605 & 2197 & 177.794 \\
+        Blocks and Triangles & A$^\ast$ goal count & 315 & 6 & 94 & 647 & 237 & 11.818 \\
+        Blocks and Triangles & A$^\ast$ EDL & 315 & 6 & 15 & 140 & 95 & 567.683 \\
+        \midrule
+        Fire Extinguisher & BFS & 117 & 21 & 379 & 2808 & 55 & 14.713 \\
+        Fire Extinguisher & A$^\ast$ goal count & 117 & 21 & 336 & 2494 & 55 & 13.539 \\
+        Fire Extinguisher & A$^\ast$ EDL & 117 & 21 & 252 & 1869 & 79 & 408.825 \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+The heuristic planners substantially reduce search effort on the nontrivial
+Blocks problems.  On Blocks and Triangles, goal-count A$^\ast$ reduces expansions
+from 1,564 to 94 (94.0\%), while exact EDL reduces them to 15 (99.0\%).  Despite
+this reduction, EDL takes longer than BFS because each outer state evaluation
+requires solving an additional relaxed planning problem.  Goal-count A$^\ast$
+provides the best runtime on this instance because its heuristic is inexpensive
+and still gives strong guidance.
+
+The Fire Extinguisher domain exhibits a smaller heuristic advantage.  Goal-count
+A$^\ast$ reduces expansions by 11.3\% relative to BFS, while EDL reduces them by
+33.5\%.  Exact EDL is again slower in wall-clock time.  This demonstrates that
+the number of expanded states alone does not measure total planning cost: a more
+informed heuristic is only beneficial in runtime when the saved expansions
+outweigh the cost of computing it.
+
+\subsection{Towers of Hanoi Scaling Study}
+
+Towers of Hanoi was used to test the planners as problem size increases.  The
+optimal solution for $n$ disks has $2^n-1$ actions; every planner returned this
+known optimum for all four instances.  Table~\ref{tab:hanoi-results} shows the
+expected rapid growth in both solution length and planning effort.
+
+\begin{table}[t]
+    \centering
+    \caption{Towers of Hanoi scaling results.}
+    \label{tab:hanoi-results}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{clrrrrrr}
+        \toprule
+        Disks & Planner & Grounded & Plan & Expanded & Generated & Max frontier & Time (ms) \\
+        \midrule
+        3 & BFS & 72 & 7 & 25 & 73 & 8 & 1.689 \\
+        3 & A$^\ast$ goal count & 72 & 7 & 14 & 41 & 6 & 1.997 \\
+        3 & A$^\ast$ EDL & 72 & 7 & 13 & 38 & 4 & 7.554 \\
+        \midrule
+        4 & BFS & 126 & 15 & 67 & 200 & 16 & 6.745 \\
+        4 & A$^\ast$ goal count & 126 & 15 & 49 & 146 & 10 & 5.053 \\
+        4 & A$^\ast$ EDL & 126 & 15 & 45 & 134 & 8 & 88.475 \\
+        \midrule
+        5 & BFS & 200 & 31 & 237 & 709 & 32 & 23.265 \\
+        5 & A$^\ast$ goal count & 200 & 31 & 168 & 503 & 17 & 26.560 \\
+        5 & A$^\ast$ EDL & 200 & 31 & 159 & 476 & 16 & 934.404 \\
+        \midrule
+        6 & BFS & 297 & 63 & 675 & 2024 & 64 & 62.809 \\
+        6 & A$^\ast$ goal count & 297 & 63 & 563 & 1688 & 31 & 55.395 \\
+        6 & A$^\ast$ EDL & 297 & 63 & 541 & 1622 & 32 & 17703.100 \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+EDL consistently expands the fewest Hanoi states, but its runtime scales poorly.
+The delete relaxation does not represent the need to move smaller disks away and
+later restore them: once a relaxed action establishes a fact, that fact remains
+true.  Consequently, the relaxed problem supplies only a modest reduction in
+outer expansions while exact computation of $h^+$ becomes increasingly costly.
+For six disks, EDL reduces expansions by 19.9\% relative to BFS but requires
+17.7 seconds, compared with 62.8 milliseconds for BFS.  It nevertheless remains
+below the assignment's 30-second planning limit.
+
+\subsection{Robot Courier Custom Domain}
+
+The Robot Courier domain tests generality beyond stacking problems.  A mobile
+robot navigates a graph of locations, can carry at most one package, and must
+deliver each package to its package-specific destination.  Static predicates
+encode object types, graph connections, and destinations; dynamic predicates
+encode robot/package locations, carrying state, and completed deliveries.  The
+large instance increases the problem from four to eight locations and from two
+to four packages without changing the action schemas.
+
+\begin{table}[t]
+    \centering
+    \caption{Results on the custom Robot Courier domain.}
+    \label{tab:courier-results}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{llrrrrrr}
+        \toprule
+        Instance & Planner & Grounded & Plan & Expanded & Generated & Max frontier & Time (ms) \\
+        \midrule
+        Courier & BFS & 16 & 10 & 28 & 50 & 6 & 2.060 \\
+        Courier & A$^\ast$ goal count & 16 & 10 & 24 & 44 & 5 & 2.809 \\
+        Courier & A$^\ast$ EDL & 16 & 10 & 13 & 26 & 6 & 7.737 \\
+        \midrule
+        Courier Large & BFS & 50 & 30 & 362 & 698 & 22 & 25.882 \\
+        Courier Large & A$^\ast$ goal count & 50 & 30 & 342 & 659 & 25 & 27.383 \\
+        Courier Large & A$^\ast$ EDL & 50 & 30 & 206 & 401 & 27 & 1268.170 \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+All planners return the same 10-action and 30-action plans for the small and
+large instances, respectively.  On Courier Large, EDL reduces expansions by
+43.1\% relative to BFS, showing that the relaxed problem provides useful search
+guidance.  Its 1.27-second runtime is nevertheless higher than the approximately
+26-millisecond uninformed baseline because exact relaxed planning is performed
+for many outer states.
+
+\subsection{Discussion}
+
+Across all environments, heuristic search reduces the number of expanded states.
+The inexpensive goal-count heuristic provides the best wall-clock runtime on most
+instances, even though it lacks a general admissibility guarantee.  Exact EDL is
+the most effective method by expansion count, and its admissibility provides a
+strong theoretical justification, but its nested relaxed searches introduce a
+large computational cost.  The results therefore illustrate a central tradeoff
+in heuristic planning: heuristic accuracy must be balanced against evaluation
+cost.
+
+Static-precondition pruning is important to making the EDL comparison fair.  It
+does not alter the relaxed problem or the returned heuristic value, but avoids
+considering ground actions that can never become applicable.  Likewise, the
+inner $h_{\max}$ computation only orders the exact relaxed search and does not
+replace $h^+$.  Thus, the optimized EDL implementation remains faithful to the
+empty-delete-list definition while avoiding unnecessary work.
