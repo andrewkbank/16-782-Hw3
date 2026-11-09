@@ -2,6 +2,119 @@
 % \usepackage{booktabs}
 % \usepackage{graphicx}
 
+\section{Implementation}
+\label{sec:implementation}
+
+The planner is implemented in C++ and operates directly on the generic
+environment object produced by the provided parser.  The supplied
+\texttt{main} function was left unchanged.  No action names, predicate names,
+or domain-specific transition rules are embedded in the planner; all successor
+states are derived from the action schemas contained in the input environment.
+
+\subsection{State and Action Representation}
+
+A search state is represented as a set of positive grounded conditions.  We
+use the closed-world convention: a condition not contained in the state is
+false.  Therefore, a positive precondition is satisfied when its grounded atom
+is present, while a negative precondition is satisfied when the corresponding
+positive atom is absent.  Applying an action first removes its negative effects
+and then inserts its positive effects.  A state satisfies the goal when every
+grounded goal condition is present.
+
+Each action schema is grounded by assigning environment symbols to its formal
+parameters and substituting those assignments into its preconditions and
+effects.  Predicates that never appear in an action effect are static.  During
+grounding, an action instance is discarded if one of its static preconditions
+is false in the initial state.  Satisfied static preconditions are removed from
+the runtime applicability test because their values cannot change.  This
+preprocessing is domain independent and cannot remove an action that could
+become applicable later.
+
+The state container is unordered, so a deterministic key is constructed for
+duplicate detection by sorting the string representation of every grounded
+condition.  Search nodes store the state, path cost, parent-node index, and the
+action used to reach the node.  Once a goal is found, the plan is reconstructed
+by following parent indices back to the initial state.
+
+\subsection{Graph-Search Infrastructure}
+
+Breadth-first search uses a FIFO frontier and marks a state visited when it is
+inserted.  This prevents duplicate frontier entries and guarantees a
+minimum-action solution for unit-cost actions.  A$^\ast$ uses a priority queue
+ordered by $f(s)=g(s)+h(s)$ and stores the lowest discovered $g$-value for each
+state.  Stale priority-queue entries are ignored, and a state is reinserted if a
+lower-cost path is discovered.  BFS and both A$^\ast$ variants share the same
+grounding, applicability, successor-generation, goal-test, state-key, and plan-
+reconstruction functions.
+
+The planner records the plan length, grounded-action count, expanded-state
+count, generated-successor count, duplicate-successor count, maximum frontier
+size, grounding time, search time, and total planning time.  These measurements
+are printed before the returned plan.
+
+\subsection{Completeness and Plan Quality}
+
+The reachable state graph is finite because each state is a subset of the
+finite set of grounded conditions.  BFS graph search is therefore complete, and
+because every action has unit cost, it returns a plan with the minimum number of
+actions.  A$^\ast$ with exact empty-delete-list cost $h^+$ is also complete and
+optimal for the positive-precondition STRIPS problems used here.  Removing
+delete effects produces a relaxation, so its optimal solution cost cannot
+exceed the true remaining cost and is therefore admissible.  The goal-count
+heuristic is not admissible in general because one action may achieve several
+goals simultaneously; it is included as a computationally inexpensive
+comparison.  It happened to return the same plan lengths as BFS on every tested
+environment, but this is an empirical result rather than a general guarantee.
+
+\section{Compilation and Execution}
+\label{sec:compilation}
+
+The implementation uses only the C++ standard library and requires a compiler
+with C++11 support.  CMake version 3.16.3 or newer may be used, but no external
+libraries are required.  From the submitted \texttt{code} directory, the CMake
+workflow is:
+
+\begin{verbatim}
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+\end{verbatim}
+
+On Linux, the executable is normally \texttt{build/planner}.  With a multi-
+configuration generator such as Visual Studio, it may instead be
+\texttt{build/Release/planner.exe}.  The planner can also be compiled directly
+from inside the \texttt{build} directory:
+
+\begin{verbatim}
+g++ ../src/planner.cpp -std=c++11 -O2 -o planner
+\end{verbatim}
+
+The program takes the basename of an environment file stored in
+\texttt{code/envs}.  For example:
+
+\begin{verbatim}
+./planner Blocks.txt
+\end{verbatim}
+
+The search algorithm is selected with the \texttt{PLANNER\_MODE} environment
+variable.  The supported values are \texttt{bfs}, \texttt{astar-goal}, and
+\texttt{astar-edl}.  If the variable is not defined, exact EDL A$^\ast$ is used.
+Example Linux commands are:
+
+\begin{verbatim}
+PLANNER_MODE=bfs        ./planner Blocks.txt
+PLANNER_MODE=astar-goal ./planner Blocks.txt
+PLANNER_MODE=astar-edl  ./planner Blocks.txt
+\end{verbatim}
+
+The corresponding PowerShell syntax is:
+
+\begin{verbatim}
+$env:PLANNER_MODE = 'astar-edl'
+.\build\Release\planner.exe Blocks.txt
+\end{verbatim}
+
 \section{Search Algorithms and Experimental Evaluation}
 \label{sec:planner-evaluation}
 
