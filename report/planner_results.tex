@@ -60,11 +60,11 @@ because every action has unit cost, it returns a plan with the minimum number of
 actions.  A$^\ast$ with exact empty-delete-list cost $h^+$ is also complete and
 optimal for the positive-precondition STRIPS problems used here.  Removing
 delete effects produces a relaxation, so its optimal solution cost cannot
-exceed the true remaining cost and is therefore admissible.  The goal-count
-heuristic is not admissible in general because one action may achieve several
-goals simultaneously; it is included as a computationally inexpensive
-comparison.  It happened to return the same plan lengths as BFS on every tested
-environment, but this is an empirical result rather than a general guarantee.
+exceed the true remaining cost and is therefore admissible.  The normalized
+goal-count heuristic is also admissible.  If $M$ is the largest number of goal
+literals that any one action can add, then any plan satisfying $k$ currently
+unsatisfied goals must contain at least $\lceil k/M \rceil$ actions.  Both
+admissible A$^\ast$ variants therefore retain the minimum-action guarantee.
 
 \section{Compilation and Execution}
 \label{sec:compilation}
@@ -134,13 +134,17 @@ spaces considered here and returns a minimum-length plan.
 The first informed planner uses
 \begin{equation}
     h_{\mathrm{goal}}(s)
-    = \left|\left\{g \in G \mid g \notin s\right\}\right|,
+    = \left\lceil
+      \frac{\left|\left\{g \in G \mid g \notin s\right\}\right|}{M}
+      \right\rceil,
 \end{equation}
-the number of goal literals that are not satisfied in state $s$.  This heuristic
-is inexpensive and domain independent.  It is not admissible in general because
-a single action may achieve multiple goal literals.  Consequently, this planner
-does not have a general optimality guarantee, although it returned the same plan
-length as BFS in every experiment.
+where $M$ is the maximum number of goal literals appearing in the positive
+effects of any one grounded action.  A plan of $n$ actions can add at most $nM$
+goal literals, so satisfying $k$ currently unsatisfied goals requires at least
+$\lceil k/M \rceil$ actions.  This makes the heuristic admissible while keeping
+it inexpensive and domain independent.  In every benchmark domain, each action
+adds at most one goal literal, so $M=1$ and the normalized value equals the raw
+unsatisfied-goal count.
 
 \paragraph{A$^\ast$ with empty-delete-list heuristic.}
 The second informed planner uses the exact empty-delete-list heuristic $h^+$.
@@ -312,13 +316,12 @@ for many outer states.
 \subsection{Discussion}
 
 Across all environments, heuristic search reduces the number of expanded states.
-The inexpensive goal-count heuristic provides the best wall-clock runtime on most
-instances, even though it lacks a general admissibility guarantee.  Exact EDL is
-the most effective method by expansion count, and its admissibility provides a
-strong theoretical justification, but its nested relaxed searches introduce a
-large computational cost.  The results therefore illustrate a central tradeoff
-in heuristic planning: heuristic accuracy must be balanced against evaluation
-cost.
+The inexpensive normalized goal-count heuristic provides the best wall-clock
+runtime on most instances while retaining admissibility.  Exact EDL is the most
+effective method by expansion count, but its nested relaxed searches introduce
+a large computational cost.  The results therefore illustrate a central
+tradeoff in heuristic planning: heuristic accuracy must be balanced against
+evaluation cost.
 
 Static-precondition pruning is important to making the EDL comparison fair.  It
 does not alter the relaxed problem or the returned heuristic value, but avoids

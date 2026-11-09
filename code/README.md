@@ -4,7 +4,7 @@ The executable supports three domain-independent search modes selected with the
 `PLANNER_MODE` environment variable:
 
 - `bfs`: breadth-first graph search (no heuristic)
-- `astar-goal`: A* with the number of unsatisfied goals
+- `astar-goal`: A* with the admissible normalized unsatisfied-goal count
 - `astar-edl`: A* with the exact empty-delete-list cost `h+` (default)
 
 PowerShell example:

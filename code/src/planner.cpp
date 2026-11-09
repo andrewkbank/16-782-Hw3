@@ -965,13 +965,21 @@ bool is_goal(const State &state, const vector<GroundedCondition> &goals)
     return true;
 }
 
-int goal_count_heuristic(const State &state, const vector<GroundedCondition> &goals)
+int normalized_goal_count_heuristic(
+    const State &state,
+    const vector<GroundedCondition> &goals,
+    int maximum_goals_added_per_action)
 {
     int unsatisfied = 0;
     for (const GroundedCondition &goal : goals)
         if (state.find(goal) == state.end())
             ++unsatisfied;
-    return unsatisfied;
+    if (unsatisfied == 0)
+        return 0;
+    if (maximum_goals_added_per_action == 0)
+        return numeric_limits<int>::max() / 4;
+    return (unsatisfied + maximum_goals_added_per_action - 1) /
+           maximum_goals_added_per_action;
 }
 
 class EmptyDeleteListHeuristic
@@ -1348,9 +1356,27 @@ SearchResult a_star_search(
     if (heuristic_mode == HeuristicMode::EMPTY_DELETE_LIST)
         empty_delete_list.reset(new EmptyDeleteListHeuristic(initial, goals, actions));
 
+    int maximum_goals_added_per_action = 0;
+    if (heuristic_mode == HeuristicMode::GOAL_COUNT)
+    {
+        unordered_set<string> goal_atoms;
+        for (const GroundedCondition &goal : goals)
+            goal_atoms.insert(goal.toString());
+        for (const GroundedActionInstance &action : actions)
+        {
+            int goals_added = 0;
+            for (const GroundedCondition &effect : action.add_effects)
+                if (goal_atoms.find(effect.toString()) != goal_atoms.end())
+                    ++goals_added;
+            maximum_goals_added_per_action =
+                max(maximum_goals_added_per_action, goals_added);
+        }
+    }
+
     auto heuristic = [&](const State &state) {
         if (heuristic_mode == HeuristicMode::GOAL_COUNT)
-            return goal_count_heuristic(state, goals);
+            return normalized_goal_count_heuristic(
+                state, goals, maximum_goals_added_per_action);
         return empty_delete_list->evaluate(state);
     };
 
