@@ -5,7 +5,7 @@ The executable supports three domain-independent search modes selected with the
 
 - `bfs`: breadth-first graph search (no heuristic)
 - `astar-goal`: A* with the number of unsatisfied goals
-- `astar-edl`: A* with an `h_max` empty-delete-list relaxation (default)
+- `astar-edl`: A* with the exact empty-delete-list cost `h+` (default)
 
 PowerShell example:
 
@@ -18,6 +18,15 @@ $env:PLANNER_MODE = 'bfs'
 
 For a single-config generator, the executable may instead be at
 `.\build\planner.exe`.
+
+Linux/autograder-style build:
+
+```bash
+mkdir -p build
+cd build
+g++ ../src/planner.cpp -std=c++11 -O2 -o planner
+./planner Blocks.txt
+```
 
 The supplied Hanoi instances have known optimal plan lengths:
 

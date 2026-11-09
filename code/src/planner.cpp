@@ -405,15 +405,17 @@ public:
     }
 
     // add getters
-    auto get_initial_conditions() const
+    unordered_set<GroundedCondition, GroundedConditionHasher, GroundedConditionComparator>
+    get_initial_conditions() const
     {
         return this->initial_conditions;
     }
-    auto get_goal_conditions() const
+    unordered_set<GroundedCondition, GroundedConditionHasher, GroundedConditionComparator>
+    get_goal_conditions() const
     {
         return this->goal_conditions;
     }
-    auto get_actions() const
+    unordered_set<Action, ActionHasher, ActionComparator> get_actions() const
     {
         return this->actions;
     }
