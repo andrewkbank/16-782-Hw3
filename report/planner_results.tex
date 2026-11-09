@@ -171,7 +171,7 @@ grounded actions.
 
 \subsection{Experimental Methodology}
 
-The planner was compiled as C++14 with optimization level \texttt{-O2}.  Each
+The planner was compiled as C++11 with optimization level \texttt{-O2}.  Each
 planner/environment combination was executed three times, and the tables report
 the median total wall-clock planning time.  Total time includes action grounding,
 heuristic initialization, and graph search, but excludes environment-file parsing
@@ -198,21 +198,21 @@ of identical length on every problem.
         \toprule
         Environment & Planner & Grounded & Plan & Expanded & Generated & Max frontier & Time (ms) \\
         \midrule
-        BlocksEasy & BFS & 45 & 1 & 5 & 18 & 9 & 0.544 \\
-        BlocksEasy & A$^\ast$ goal count & 45 & 1 & 1 & 5 & 5 & 0.406 \\
-        BlocksEasy & A$^\ast$ EDL & 45 & 1 & 1 & 5 & 5 & 0.958 \\
+        BlocksEasy & BFS & 45 & 1 & 5 & 18 & 9 & 0.398 \\
+        BlocksEasy & A$^\ast$ goal count & 45 & 1 & 1 & 5 & 5 & 0.341 \\
+        BlocksEasy & A$^\ast$ EDL & 45 & 1 & 1 & 5 & 5 & 0.581 \\
         \midrule
-        Blocks & BFS & 45 & 3 & 28 & 97 & 15 & 1.152 \\
-        Blocks & A$^\ast$ goal count & 45 & 3 & 5 & 26 & 15 & 0.737 \\
-        Blocks & A$^\ast$ EDL & 45 & 3 & 3 & 19 & 15 & 8.709 \\
+        Blocks & BFS & 45 & 3 & 28 & 97 & 15 & 0.749 \\
+        Blocks & A$^\ast$ goal count & 45 & 3 & 5 & 26 & 15 & 0.444 \\
+        Blocks & A$^\ast$ EDL & 45 & 3 & 3 & 19 & 15 & 5.949 \\
         \midrule
-        Blocks and Triangles & BFS & 315 & 6 & 1564 & 15605 & 2197 & 177.794 \\
-        Blocks and Triangles & A$^\ast$ goal count & 315 & 6 & 94 & 647 & 237 & 11.818 \\
-        Blocks and Triangles & A$^\ast$ EDL & 315 & 6 & 15 & 140 & 95 & 567.683 \\
+        Blocks and Triangles & BFS & 315 & 6 & 1564 & 15605 & 2197 & 152.149 \\
+        Blocks and Triangles & A$^\ast$ goal count & 315 & 6 & 94 & 647 & 237 & 9.897 \\
+        Blocks and Triangles & A$^\ast$ EDL & 315 & 6 & 15 & 140 & 95 & 507.585 \\
         \midrule
-        Fire Extinguisher & BFS & 117 & 21 & 379 & 2808 & 55 & 14.713 \\
-        Fire Extinguisher & A$^\ast$ goal count & 117 & 21 & 336 & 2494 & 55 & 13.539 \\
-        Fire Extinguisher & A$^\ast$ EDL & 117 & 21 & 252 & 1869 & 79 & 408.825 \\
+        Fire Extinguisher & BFS & 117 & 21 & 379 & 2808 & 55 & 14.834 \\
+        Fire Extinguisher & A$^\ast$ goal count & 117 & 21 & 336 & 2494 & 55 & 12.767 \\
+        Fire Extinguisher & A$^\ast$ EDL & 117 & 21 & 252 & 1869 & 79 & 341.741 \\
         \bottomrule
     \end{tabular}}
 \end{table}
@@ -248,21 +248,21 @@ expected rapid growth in both solution length and planning effort.
         \toprule
         Disks & Planner & Grounded & Plan & Expanded & Generated & Max frontier & Time (ms) \\
         \midrule
-        3 & BFS & 72 & 7 & 25 & 73 & 8 & 1.689 \\
-        3 & A$^\ast$ goal count & 72 & 7 & 14 & 41 & 6 & 1.997 \\
-        3 & A$^\ast$ EDL & 72 & 7 & 13 & 38 & 4 & 7.554 \\
+        3 & BFS & 72 & 7 & 25 & 73 & 8 & 1.668 \\
+        3 & A$^\ast$ goal count & 72 & 7 & 14 & 41 & 6 & 1.382 \\
+        3 & A$^\ast$ EDL & 72 & 7 & 13 & 38 & 4 & 5.971 \\
         \midrule
-        4 & BFS & 126 & 15 & 67 & 200 & 16 & 6.745 \\
-        4 & A$^\ast$ goal count & 126 & 15 & 49 & 146 & 10 & 5.053 \\
-        4 & A$^\ast$ EDL & 126 & 15 & 45 & 134 & 8 & 88.475 \\
+        4 & BFS & 126 & 15 & 67 & 200 & 16 & 4.815 \\
+        4 & A$^\ast$ goal count & 126 & 15 & 49 & 146 & 10 & 4.773 \\
+        4 & A$^\ast$ EDL & 126 & 15 & 45 & 134 & 8 & 56.554 \\
         \midrule
-        5 & BFS & 200 & 31 & 237 & 709 & 32 & 23.265 \\
-        5 & A$^\ast$ goal count & 200 & 31 & 168 & 503 & 17 & 26.560 \\
-        5 & A$^\ast$ EDL & 200 & 31 & 159 & 476 & 16 & 934.404 \\
+        5 & BFS & 200 & 31 & 237 & 709 & 32 & 19.574 \\
+        5 & A$^\ast$ goal count & 200 & 31 & 168 & 503 & 17 & 14.173 \\
+        5 & A$^\ast$ EDL & 200 & 31 & 159 & 476 & 16 & 826.239 \\
         \midrule
-        6 & BFS & 297 & 63 & 675 & 2024 & 64 & 62.809 \\
-        6 & A$^\ast$ goal count & 297 & 63 & 563 & 1688 & 31 & 55.395 \\
-        6 & A$^\ast$ EDL & 297 & 63 & 541 & 1622 & 32 & 17703.100 \\
+        6 & BFS & 297 & 63 & 675 & 2024 & 64 & 59.226 \\
+        6 & A$^\ast$ goal count & 297 & 63 & 563 & 1688 & 31 & 50.865 \\
+        6 & A$^\ast$ EDL & 297 & 63 & 541 & 1622 & 32 & 14651.600 \\
         \bottomrule
     \end{tabular}}
 \end{table}
@@ -273,7 +273,7 @@ later restore them: once a relaxed action establishes a fact, that fact remains
 true.  Consequently, the relaxed problem supplies only a modest reduction in
 outer expansions while exact computation of $h^+$ becomes increasingly costly.
 For six disks, EDL reduces expansions by 19.9\% relative to BFS but requires
-17.7 seconds, compared with 62.8 milliseconds for BFS.  It nevertheless remains
+14.7 seconds, compared with 59.2 milliseconds for BFS.  It nevertheless remains
 below the assignment's 30-second planning limit.
 
 \subsection{Robot Courier Custom Domain}
@@ -295,13 +295,13 @@ to four packages without changing the action schemas.
         \toprule
         Instance & Planner & Grounded & Plan & Expanded & Generated & Max frontier & Time (ms) \\
         \midrule
-        Courier & BFS & 16 & 10 & 28 & 50 & 6 & 2.060 \\
-        Courier & A$^\ast$ goal count & 16 & 10 & 24 & 44 & 5 & 2.809 \\
-        Courier & A$^\ast$ EDL & 16 & 10 & 13 & 26 & 6 & 7.737 \\
+        Courier & BFS & 16 & 10 & 28 & 50 & 6 & 1.336 \\
+        Courier & A$^\ast$ goal count & 16 & 10 & 24 & 44 & 5 & 1.363 \\
+        Courier & A$^\ast$ EDL & 16 & 10 & 13 & 26 & 6 & 5.161 \\
         \midrule
-        Courier Large & BFS & 50 & 30 & 362 & 698 & 22 & 25.882 \\
-        Courier Large & A$^\ast$ goal count & 50 & 30 & 342 & 659 & 25 & 27.383 \\
-        Courier Large & A$^\ast$ EDL & 50 & 30 & 206 & 401 & 27 & 1268.170 \\
+        Courier Large & BFS & 50 & 30 & 362 & 698 & 22 & 17.544 \\
+        Courier Large & A$^\ast$ goal count & 50 & 30 & 342 & 659 & 25 & 16.684 \\
+        Courier Large & A$^\ast$ EDL & 50 & 30 & 206 & 401 & 27 & 1066.500 \\
         \bottomrule
     \end{tabular}}
 \end{table}
@@ -309,8 +309,8 @@ to four packages without changing the action schemas.
 All planners return the same 10-action and 30-action plans for the small and
 large instances, respectively.  On Courier Large, EDL reduces expansions by
 43.1\% relative to BFS, showing that the relaxed problem provides useful search
-guidance.  Its 1.27-second runtime is nevertheless higher than the approximately
-26-millisecond uninformed baseline because exact relaxed planning is performed
+guidance.  Its 1.07-second runtime is nevertheless higher than the approximately
+18-millisecond uninformed baseline because exact relaxed planning is performed
 for many outer states.
 
 \subsection{Discussion}
